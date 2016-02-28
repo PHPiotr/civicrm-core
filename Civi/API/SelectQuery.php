@@ -94,8 +94,12 @@ class SelectQuery {
    *   As passed into api get function.
    * @param bool $isFillUniqueFields
    *   Do we need to ensure unique fields continue to be populated for this api? (backward compatibility).
+   * @param bool $entityFromCamel
+   *   In case entity name got from camel (_civicrm_api_get_entity_name_from_camel)
+   *   returns wrong result (e.g. 'p_c_p' from 'PCP') - use explicitly lowercased
+   *   entity name (do not use _civicrm_api_get_entity_name_from_camel function).
    */
-  public function __construct($baoName, $params, $isFillUniqueFields) {
+  public function __construct($baoName, $params, $isFillUniqueFields, $entityFromCamel = TRUE) {
     $bao = new $baoName();
     $this->entity = _civicrm_api_get_entity_name_from_dao($bao);
     $this->params = $params;
@@ -103,10 +107,10 @@ class SelectQuery {
     $this->checkPermissions = \CRM_Utils_Array::value('check_permissions', $this->params, FALSE);
     $this->options = _civicrm_api3_get_options_from_params($this->params);
 
-    $this->entityFieldNames = _civicrm_api3_field_names(_civicrm_api3_build_fields_array($bao));
+    $this->entityFieldNames = _civicrm_api3_field_names(_civicrm_api3_build_fields_array($bao, TRUE, $entityFromCamel));
     // Call this function directly instead of using the api wrapper to force unique field names off
     require_once 'api/v3/Generic.php';
-    $apiSpec = \civicrm_api3_generic_getfields(array('entity' => $this->entity, 'version' => 3, 'params' => array('action' => 'get')), FALSE);
+    $apiSpec = \civicrm_api3_generic_getfields(array('entity' => $this->entity, 'version' => 3, 'params' => array('action' => 'get')), FALSE, $entityFromCamel);
     $this->apiFieldSpec = $apiSpec['values'];
 
     $this->query = \CRM_Utils_SQL_Select::from($bao->tableName() . ' ' . self::MAIN_TABLE_ALIAS);

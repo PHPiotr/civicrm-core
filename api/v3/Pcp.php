@@ -55,7 +55,8 @@ function civicrm_api3_pcp_create($params) {
  *   Array of Personal Campaign Pages
  */
 function civicrm_api3_pcp_get($params) {
-  return _civicrm_api3_basic_get('CRM_PCP_BAO_PCP', $params);
+  $entityFromCamel = FALSE;
+  return _civicrm_api3_basic_get('CRM_PCP_BAO_PCP', $params, TRUE, '', NULL, FALSE, $entityFromCamel);
 }
 
 /**

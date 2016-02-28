@@ -949,14 +949,20 @@ function _civicrm_api3_apply_options_to_dao(&$params, &$dao, $entity) {
  *
  * @param CRM_Core_DAO $bao
  * @param bool $unique
+ * @param bool $entityFromCamel
  *
  * @return array
  */
-function _civicrm_api3_build_fields_array(&$bao, $unique = TRUE) {
+function _civicrm_api3_build_fields_array(&$bao, $unique = TRUE, $entityFromCamel = TRUE) {
   $fields = $bao->fields();
   if ($unique) {
     if (empty($fields['id'])) {
-      $lowercase_entity = _civicrm_api_get_entity_name_from_camel(_civicrm_api_get_entity_name_from_dao($bao));
+      $entityName = _civicrm_api_get_entity_name_from_dao($bao);
+      if ($entityFromCamel) {
+        $lowercase_entity = _civicrm_api_get_entity_name_from_camel($entityName);
+      } else {
+        $lowercase_entity = strtolower($entityName);
+      }
       $fields['id'] = $fields[$lowercase_entity . '_id'];
       unset($fields[$lowercase_entity . '_id']);
     }
@@ -1329,11 +1335,14 @@ function _civicrm_api3_check_required_fields($params, $daoName, $return = FALSE)
  *   CRM_Utils_SQL_Select::fragment()->where('(start_date >= CURDATE() || end_date >= CURDATE())');
  * @param bool $uniqueFields
  *   Should unique field names be returned (for backward compatibility)
+ * @param bool $entityFromCamel
+ *   What method should be used to lowercase entity name:
+ *   _civicrm_api_get_entity_name_from_camel (TRUE) / strtoler (FALSE).
  *
  * @return array
  */
-function _civicrm_api3_basic_get($bao_name, $params, $returnAsSuccess = TRUE, $entity = "", $sql = NULL, $uniqueFields = FALSE) {
-  $query = new \Civi\API\SelectQuery($bao_name, $params, $uniqueFields);
+function _civicrm_api3_basic_get($bao_name, $params, $returnAsSuccess = TRUE, $entity = "", $sql = NULL, $uniqueFields = FALSE, $entityFromCamel = TRUE) {
+  $query = new \Civi\API\SelectQuery($bao_name, $params, $uniqueFields, $entityFromCamel);
   $query->merge($sql);
   $result = $query->run();
   if ($returnAsSuccess) {
